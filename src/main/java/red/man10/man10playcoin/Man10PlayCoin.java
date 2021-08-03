@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOError;
 import java.io.IOException;
 import java.sql.Time;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +29,9 @@ import java.util.Map;
 public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
     boolean mode;
-    int time;
+    int itemDropIntervalTime;
     ItemStack item;
-    Map<Player, Long> playerandtime = new HashMap<>();//GUIにいれたアイテム数をプレイヤーごとに管理する
+    HashMap<Player, Long> playerTimeMap = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -40,6 +41,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         // config.ymlを読み込みます。
         FileConfiguration config = getConfig();
         reloadConfig();
+
         getCommand("mplaycoin").setExecutor(this);
         if (!config.getBoolean("mode")) {
             getLogger().info("Man10PlayCoin is not run.");
@@ -48,11 +50,22 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             getLogger().info("Man10PlayCoin is run.");
             mode = true;
         }
+
+        itemDropIntervalTime = 10;// config kara yonde ...
+
+
+        // initialize hashmap when reload
+        playerTimeMap.clear();
+        for (Player p:Bukkit.getOnlinePlayers()) {
+            playerTimeMap.put(p, Instant.now().getEpochSecond());
+        }
+
+
         getServer().getScheduler().scheduleSyncRepeatingTask((Plugin)this, new Runnable() {
             public void run() {
-                givecoin();
+                giveCoinTask();
             }
-        },  0L, 100L);
+        },  0L, 20L);
     }
 
     @Override
@@ -92,13 +105,13 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         if (args[0].equalsIgnoreCase("set")) {
             if (args.length == 2){
                 try{
-                   time = Integer.parseInt(args[1]);
+                    itemDropIntervalTime = Integer.parseInt(args[1]);
                 }catch (NumberFormatException e){
                     p.sendMessage("§2§l[Man10PlayCoin]§c数字で入力してください。");
                     return true;
                 }
                 if (p.hasPermission("Man10PlayCoin.use")) {
-                    getConfig().set("time",time);
+                    getConfig().set("time",itemDropIntervalTime);
                     saveConfig();
                     p.sendMessage("§2§l[Man10PlayCoin]§f時間の登録ができました");
                     reloadConfig();
@@ -111,18 +124,32 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player p = event.getPlayer();
-        Long time = new Date().getTime();
-        playerandtime.put(p,time);
+        playerTimeMap.put(event.getPlayer(),Instant.now().getEpochSecond());
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event){
-        Player p = event.getPlayer();
-        playerandtime.remove(p);
+        playerTimeMap.remove(event.getPlayer());
     }
 
-    public void givecoin(){
+    //
+    public void giveCoinTask(){
+
+        // get unix time
+        Long now = Instant.now().getEpochSecond();
+
+        for (Player p : playerTimeMap.keySet()) {
+            Long last = playerTimeMap.get(p);
+            Long lap = now - last;
+            p.sendMessage("time:"+lap);
+            if(lap >= itemDropIntervalTime){
+                p.sendMessage("give item to player");
+
+
+                // set time
+                playerTimeMap.put(p,now);
+            }
+        }
 
     }
 }
