@@ -140,6 +140,8 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         Long now = Instant.now().getEpochSecond();
 
         for (Player p : playerTimeMap.keySet()) {
+            if(!p.isOnline())
+                continue;
             Long last = playerTimeMap.get(p);
             Long lap = now - last;
 
