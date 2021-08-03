@@ -3,11 +3,9 @@ package red.man10.man10playcoin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,7 +14,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import sun.security.krb5.Config;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -24,57 +21,53 @@ import java.util.List;
 
 public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
+    // 設定パーミッション
+    final String opPermission = "red.man10.playcoin.op";
+    // アイテムをもらえるパーミッション
+    final String getPermission = "red.man10.playcoin.get";
+
+    // 設定
+    ItemStack dropItem = null;
     boolean enableFlag;
     int itemDropIntervalTime;
     String giveCoinMessage;
     String fullInventoryMessage;
-    ItemStack item;
-    HashMap<Player, Long> playerTimeMap = new HashMap<>();
     List<String> disabledWorlds;
+
+    //　保存データ
+    HashMap<Player, Long> playerTimeMap = new HashMap<>();
+
     @Override
     public void onEnable() {
 
-        getServer().getPluginManager().registerEvents(this, this);
-        // config.ymlが存在しない場合はファイルに出力します。
         saveDefaultConfig();
-        // config.ymlを読み込みます。
-        FileConfiguration config = getConfig();
-        reloadConfig();
+        loadSettings();
 
-
-        enableFlag = true;
         getCommand("mplaycoin").setExecutor(this);
-        if (!config.getBoolean("enableFlag")) {
-            getLogger().info("Man10PlayCoin is disabled.");
-            enableFlag = false;
-            return;
-        }
+        getServer().getPluginManager().registerEvents(this, this);
 
-        // initialize hashmap when reload
+        // オンライン中のユーザーを登録
         playerTimeMap.clear();
         for (Player p:Bukkit.getOnlinePlayers()) {
             playerTimeMap.put(p, Instant.now().getEpochSecond());
         }
 
-
+        // start timer
         getServer().getScheduler().scheduleSyncRepeatingTask((Plugin)this, new Runnable() {
             public void run() {
                 giveCoinTask();
             }
-        },  0L, 20L);
+        },  0L, 20L * 10);
     }
 
-    void loadSetting(){
-
-        itemDropIntervalTime = getConfig().getInt("itemDropIntervalTime");
-        giveCoinMessage = getConfig().getString("giveCoinMessage");
-        fullInventoryMessage = getConfig().getString("fullInventoryMessage");
-        item = getConfig().getItemStack("item");
-
-        for (int i=0; i<getConfig().getString("worlds").length(); ++i) {
-            disabledWorlds.add(getConfig().getString("worlds"));
-        }
-
+    void loadSettings(){
+        FileConfiguration config = getConfig();
+        enableFlag = config.getBoolean("enableFlag");
+        itemDropIntervalTime = config.getInt("itemDropIntervalTime");
+        giveCoinMessage = config.getString("giveCoinMessage");
+        fullInventoryMessage = config.getString("fullInventoryMessage");
+        dropItem = config.getItemStack("dropItem");
+        disabledWorlds = config.getStringList("disabledWorlds");
     }
 
     @Override
@@ -88,49 +81,55 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             return true;
         }
 
-        if (!enableFlag) return true;
-
         Player p = (Player) sender;
-        if (!p.hasPermission("mplaycoin.use")) {
-            p.sendMessage("Unknown command. Type \"/help\" for help.");
-            return true;
+        if(!p.hasPermission(this.opPermission)){
+            p.sendMessage("権限がありません");
+            return false;
         }
-        if (args.length == 0) {
-            p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
-            p.sendMessage("§a§l                   [Man10PlayCoin]                   ");
-            p.sendMessage("§a§l /mplaycoin register   手持ちのアイテムを設定    ");
-            p.sendMessage("§a§l /mplaycoin time <time>  コインの排出間隔(秒)を設定           ");
-            p.sendMessage("§a§l /mplaycoin givecoinmessage <Message>  メッセージを設定           ");
-            p.sendMessage("§a§l /mplaycoin fullinventorymessage <Message>  上に同じ           ");
-            p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
-            return true;
-        }
+
+        // アイテム登録
+
         if (args[0].equalsIgnoreCase("register")) {
             if (args.length == 1){
-                    getConfig().set("item",p.getInventory().getItemInMainHand());
+                    dropItem = p.getInventory().getItemInMainHand();
+                    getConfig().set("dropItem",dropItem);
                     saveConfig();
                     p.sendMessage("§2§l[Man10PlayCoin]§fアイテムの登録ができました");
-                    reloadConfig();
                     return true;
             }
         }
+
+        //  時間設定
         if (args[0].equalsIgnoreCase("time")) {
-            if (args.length == 2){
-                try{
-                    itemDropIntervalTime = Integer.parseInt(args[1]);
-                }catch (NumberFormatException e){
-                    p.sendMessage("§2§l[Man10PlayCoin]§c数字で入力してください。");
-                    return true;
-                }
-                if (p.hasPermission("Man10PlayCoin.use")) {
-                    getConfig().set("time",itemDropIntervalTime);
-                    saveConfig();
-                    p.sendMessage("§2§l[Man10PlayCoin]§f時間の登録ができました");
-                    reloadConfig();
-                    return true;
-                }
+            if(args.length != 2){
+                p.sendMessage("[usage]mplaycoin time [秒数]");
+                return false;
             }
+            try{
+                itemDropIntervalTime = Integer.parseInt(args[1]);
+            }catch (NumberFormatException e){
+                p.sendMessage("§2§l[Man10PlayCoin]§c数字で入力してください。");
+                return true;
+            }
+            getConfig().set("itemDropIntervalTime",itemDropIntervalTime);
+            saveConfig();
+            p.sendMessage("§2§l[Man10PlayCoin]§f時間の登録ができました");
         }
+
+        if (args[0].equalsIgnoreCase("on")) {
+            enableFlag = true;
+            getConfig().set("enableFlag",true);
+            p.sendMessage("§2§l再開しました");
+            return false;
+        }
+        if (args[0].equalsIgnoreCase("off")) {
+            enableFlag = false;
+            getConfig().set("enableFlag",false);
+            p.sendMessage("§2§l停止しました");
+            return false;
+        }
+
+        //
         if (args[0].equalsIgnoreCase("givecoinmessage")) {
             if (args.length == 2){
                 giveCoinMessage = (args[1]);
@@ -151,6 +150,18 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 return true;
             }
         }
+
+        p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
+        p.sendMessage("§a§l                   [Man10PlayCoin]                   ");
+        p.sendMessage("§a§l /mplaycoin register   手持ちのアイテムを設定    ");
+        p.sendMessage("§a§l /mplaycoin time <time>  コインの排出間隔(秒)を設定           ");
+        p.sendMessage("§a§l /mplaycoin dropMessage <Message>  メッセージを設定           ");
+        p.sendMessage("§a§l /mplaycoin fullInvMessage <Message>  上に同じ           ");
+        p.sendMessage("§a§l /mplaycoin off 停止          ");
+        p.sendMessage("§a§l /mplaycoin on 開始          ");
+        p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
+
+
         return false;
     }
 
@@ -166,34 +177,49 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
     //
     public void giveCoinTask(){
+
+        // 無効中を処理しない
         if(enableFlag == false)
             return;
 
-        // get unix time
+        if(dropItem == null)
+            return;
+
+        // 現在の時刻を取得
         Long now = Instant.now().getEpochSecond();
 
+        // 登録されているプレーヤを処理する
         for (Player p : playerTimeMap.keySet()) {
             if(!p.isOnline())
                 continue;
-            Long last = playerTimeMap.get(p);
-            Long lap = now - last;
 
-            p.sendMessage("time:"+lap);
+            if(!p.hasPermission(getPermission))
+                continue;
+
+            // 対象プレーヤの経過時間
+            Long lap = now - playerTimeMap.get(p);
+
+            // 設定時間をこえたらアイテムを排出する
             if(lap >= itemDropIntervalTime){
-                p.sendMessage("give item to player");
-                if(p.getWorld().getName().equals(disabledWorlds)) {
-                    return;
-                }
+
+                // 無効ワールドならドロップしない
+                if(disabledWorlds.contains(p.getWorld().getName()))
+                    continue;
+
+                // 音を出す
+                Location loc = p.getLocation();
+                loc.getWorld().playSound(loc, Sound.BLOCK_NOTE_BLOCK_BELL,1f,1f);
+
+                // インベントリがフルならメッセージをだす
                 if (isInventoryFull(p)){
-                    p.sendMessage(fullInventoryMessage);
-                    Location loc = p.getLocation();
-                    loc.getWorld().playSound(loc, Sound.BLOCK_NOTE_BLOCK_BELL,1f,1f);
+                    p.sendMessage(fullInventoryMessage.replace("%player%",p.getName()));
                     playerTimeMap.put(p,now);
-                    return;
+                    continue;
                 }
-                p.getInventory().addItem(item);
-                p.sendMessage(giveCoinMessage);
-                // set time
+
+                // アイテムをあげてメッセージを表示
+                p.getInventory().addItem(dropItem);
+                p.sendMessage(giveCoinMessage.replace("%player%",p.getName()));
                 playerTimeMap.put(p,now);
             }
         }

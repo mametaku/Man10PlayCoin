@@ -1,8 +1,10 @@
 enableFlag: true
-item:
-itemDropIntervalTime:
-giveCoinMessage:
-fullInventoryMessage:
-worlds:
-  -
-  -
+itemDropIntervalTime: 600
+giveCoinMessage: §f[§dMan§f10§a国王§f]§e%player%§fよ、§e§lプレイコイン§fをあげよう
+fullInventoryMessage: §f[§dMan§f10§a国王§f]§e%player%§fよ、インベントリがいっぱいだぞ
+disabledWorlds:
+  - mfc
+dropItem:
+  ==: org.bukkit.inventory.ItemStack
+  v: 2730
+  type: GRANITE
