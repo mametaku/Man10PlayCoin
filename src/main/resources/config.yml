@@ -1,3 +1,5 @@
-mode: true
+enableFlag: true
 item:
-time:
+itemDropIntervalTime:
+giveCoinMessage:
+fullInventoryMessage:

@@ -1,6 +1,8 @@
 package red.man10.man10playcoin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -14,13 +16,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOError;
-import java.io.IOException;
-import java.sql.Time;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,11 +26,14 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
     boolean enableFlag;
     int itemDropIntervalTime;
+    String giveCoinMessage;
+    String fullInventoryMessage;
     ItemStack item;
     HashMap<Player, Long> playerTimeMap = new HashMap<>();
 
     @Override
     public void onEnable() {
+
         getServer().getPluginManager().registerEvents(this, this);
         // config.ymlが存在しない場合はファイルに出力します。
         saveDefaultConfig();
@@ -47,11 +46,13 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         getCommand("mplaycoin").setExecutor(this);
         if (!config.getBoolean("enableFlag")) {
             getLogger().info("Man10PlayCoin is disabled.");
-          //  enableFlag = false;
+            enableFlag = false;
+            return;
         }
 
-        itemDropIntervalTime = 10;// config kara yonde ...
-
+        itemDropIntervalTime = getConfig().getInt("itemDropIntervalTime");
+        giveCoinMessage = getConfig().getString("giveCoinMessage");
+        fullInventoryMessage = getConfig().getString("fullInventoryMessage");
 
         // initialize hashmap when reload
         playerTimeMap.clear();
@@ -77,7 +78,8 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         if (!(sender instanceof Player)) {
             return true;
         }
-      //  if (enableFlag == false) return true;
+
+        if (!enableFlag) return true;
 
         Player p = (Player) sender;
         if (!p.hasPermission("mplaycoin.use")) {
@@ -87,8 +89,10 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         if (args.length == 0) {
             p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
             p.sendMessage("§a§l                   [Man10PlayCoin]                   ");
-            p.sendMessage("§a§l      /mplaycoin register   手持ちのアイテムを設定    ");
-            p.sendMessage("§a§l      /mplaycoin set <time>  コインの排出間隔(秒)を設定           ");
+            p.sendMessage("§a§l /mplaycoin register   手持ちのアイテムを設定    ");
+            p.sendMessage("§a§l /mplaycoin time <time>  コインの排出間隔(秒)を設定           ");
+            p.sendMessage("§a§l /mplaycoin givecoinmessage <Message>  メッセージを設定           ");
+            p.sendMessage("§a§l /mplaycoin fullinventorymessage <Message>  上に同じ           ");
             p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
             return true;
         }
@@ -101,7 +105,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                     return true;
             }
         }
-        if (args[0].equalsIgnoreCase("set")) {
+        if (args[0].equalsIgnoreCase("time")) {
             if (args.length == 2){
                 try{
                     itemDropIntervalTime = Integer.parseInt(args[1]);
@@ -116,6 +120,26 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                     reloadConfig();
                     return true;
                 }
+            }
+        }
+        if (args[0].equalsIgnoreCase("givecoinmessage")) {
+            if (args.length == 2){
+                giveCoinMessage = (args[1]);
+                getConfig().set("giveCoinMessage",args[1]);
+                saveConfig();
+                p.sendMessage("§2§l[Man10PlayCoin]§fメッセージの登録ができました");
+                reloadConfig();
+                return true;
+            }
+        }
+        if (args[0].equalsIgnoreCase("fullinventorymessage")) {
+            if (args.length == 2){
+                fullInventoryMessage = (args[1]);
+                getConfig().set("fullInventoryMessage",args[1]);
+                saveConfig();
+                p.sendMessage("§2§l[Man10PlayCoin]§fメッセージの登録ができました");
+                reloadConfig();
+                return true;
             }
         }
         return false;
@@ -148,12 +172,23 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             p.sendMessage("time:"+lap);
             if(lap >= itemDropIntervalTime){
                 p.sendMessage("give item to player");
-
-
+                if (isInventoryFull(p)){
+                    p.sendMessage(fullInventoryMessage);
+                    Location loc = p.getLocation();
+                    loc.getWorld().playSound(loc, Sound.BLOCK_NOTE_BLOCK_BELL,1f,1f);
+                    playerTimeMap.put(p,now);
+                    return;
+                }
+                p.getInventory().addItem(getConfig().getItemStack("item"));
+                p.sendMessage(giveCoinMessage);
                 // set time
                 playerTimeMap.put(p,now);
             }
         }
 
+    }
+    public boolean isInventoryFull(Player p)
+    {
+        return p.getInventory().firstEmpty() == -1;
     }
 }
