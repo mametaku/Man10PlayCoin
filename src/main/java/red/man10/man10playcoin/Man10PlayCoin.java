@@ -28,7 +28,7 @@ import java.util.Map;
 
 public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
-    boolean mode;
+    boolean enableFlag;
     int itemDropIntervalTime;
     ItemStack item;
     HashMap<Player, Long> playerTimeMap = new HashMap<>();
@@ -42,17 +42,12 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
         reloadConfig();
 
+
+        enableFlag = true;
         getCommand("mplaycoin").setExecutor(this);
-        if (!config.getBoolean("mode")) {
-            getLogger().info("Man10PlayCoin is not run.");
-            mode = false;
-        } else {
-            getLogger().info("Man10PlayCoin is run.");
-            getServer().getScheduler().scheduleSyncRepeatingTask((Plugin)this, new Runnable() {
-                public void run() {
-                    givecoin();
-                }
-            },  0L, 100L);
+        if (!config.getBoolean("enableFlag")) {
+            getLogger().info("Man10PlayCoin is disabled.");
+          //  enableFlag = false;
         }
 
         itemDropIntervalTime = 10;// config kara yonde ...
@@ -82,7 +77,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         if (!(sender instanceof Player)) {
             return true;
         }
-        if (mode == false) return true;
+      //  if (enableFlag == false) return true;
 
         Player p = (Player) sender;
         if (!p.hasPermission("mplaycoin.use")) {
@@ -138,6 +133,8 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
     //
     public void giveCoinTask(){
+        if(enableFlag == false)
+            return;
 
         // get unix time
         Long now = Instant.now().getEpochSecond();
@@ -145,6 +142,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         for (Player p : playerTimeMap.keySet()) {
             Long last = playerTimeMap.get(p);
             Long lap = now - last;
+
             p.sendMessage("time:"+lap);
             if(lap >= itemDropIntervalTime){
                 p.sendMessage("give item to player");
