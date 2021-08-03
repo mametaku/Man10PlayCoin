@@ -78,12 +78,17 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            return true;
+            return false;
         }
 
         Player p = (Player) sender;
         if(!p.hasPermission(this.opPermission)){
             p.sendMessage("権限がありません");
+            return false;
+        }
+
+        if(args.length == 0){
+            showHelp(p);
             return false;
         }
 
@@ -130,7 +135,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         }
 
         //
-        if (args[0].equalsIgnoreCase("givecoinmessage")) {
+        if (args[0].equalsIgnoreCase("giveCoinMessage")) {
             if (args.length == 2){
                 giveCoinMessage = (args[1]);
                 getConfig().set("giveCoinMessage",args[1]);
@@ -140,7 +145,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 return true;
             }
         }
-        if (args[0].equalsIgnoreCase("fullinventorymessage")) {
+        if (args[0].equalsIgnoreCase("fullInventoryMessage")) {
             if (args.length == 2){
                 fullInventoryMessage = (args[1]);
                 getConfig().set("fullInventoryMessage",args[1]);
@@ -151,20 +156,22 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             }
         }
 
+
+        return false;
+    }
+    void showHelp(Player p){
         p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
         p.sendMessage("§a§l                   [Man10PlayCoin]                   ");
         p.sendMessage("§a§l /mplaycoin register   手持ちのアイテムを設定    ");
         p.sendMessage("§a§l /mplaycoin time <time>  コインの排出間隔(秒)を設定           ");
-        p.sendMessage("§a§l /mplaycoin dropMessage <Message>  メッセージを設定           ");
-        p.sendMessage("§a§l /mplaycoin fullInvMessage <Message>  上に同じ           ");
+        p.sendMessage("§a§l /mplaycoin giveCoinMessage <Message>  メッセージを設定           ");
+        p.sendMessage("§a§l /mplaycoin fullInventoryMessage <Message>  上に同じ           ");
         p.sendMessage("§a§l /mplaycoin off 停止          ");
         p.sendMessage("§a§l /mplaycoin on 開始          ");
         p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
 
 
-        return false;
     }
-
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         playerTimeMap.put(event.getPlayer(),Instant.now().getEpochSecond());
