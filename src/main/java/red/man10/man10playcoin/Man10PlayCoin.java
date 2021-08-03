@@ -3,24 +3,24 @@ package red.man10.man10playcoin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Item;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import sun.security.krb5.Config;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
@@ -30,7 +30,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
     String fullInventoryMessage;
     ItemStack item;
     HashMap<Player, Long> playerTimeMap = new HashMap<>();
-
+    List<String> disabledWorlds;
     @Override
     public void onEnable() {
 
@@ -53,7 +53,10 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         itemDropIntervalTime = getConfig().getInt("itemDropIntervalTime");
         giveCoinMessage = getConfig().getString("giveCoinMessage");
         fullInventoryMessage = getConfig().getString("fullInventoryMessage");
-
+        item = getConfig().getItemStack("item");
+        for (int i=0; i<getConfig().getString("worlds").length(); ++i) {
+            disabledWorlds.add(getConfig().getString("worlds"));
+        }
         // initialize hashmap when reload
         playerTimeMap.clear();
         for (Player p:Bukkit.getOnlinePlayers()) {
@@ -172,6 +175,9 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             p.sendMessage("time:"+lap);
             if(lap >= itemDropIntervalTime){
                 p.sendMessage("give item to player");
+                if(p.getWorld().getName().equals(disabledWorlds)) {
+                    return;
+                }
                 if (isInventoryFull(p)){
                     p.sendMessage(fullInventoryMessage);
                     Location loc = p.getLocation();
@@ -179,7 +185,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                     playerTimeMap.put(p,now);
                     return;
                 }
-                p.getInventory().addItem(getConfig().getItemStack("item"));
+                p.getInventory().addItem(item);
                 p.sendMessage(giveCoinMessage);
                 // set time
                 playerTimeMap.put(p,now);
