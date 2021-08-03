@@ -1,0 +1,4 @@
+name: Man10PlayCoin
+version: ${project.version}
+main: red.man10.man10playcoin.Man10PlayCoin
+api-version: 1.17
