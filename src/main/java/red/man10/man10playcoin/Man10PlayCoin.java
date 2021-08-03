@@ -27,13 +27,13 @@ import java.util.Map;
 
 public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
+    boolean mode;
     int time;
     ItemStack item;
     Map<Player, Long> playerandtime = new HashMap<>();//GUIにいれたアイテム数をプレイヤーごとに管理する
 
     @Override
     public void onEnable() {
-        getLogger().info("Man10PlayCoin is run.");
         getServer().getPluginManager().registerEvents(this, this);
         // config.ymlが存在しない場合はファイルに出力します。
         saveDefaultConfig();
@@ -43,6 +43,10 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         getCommand("mplaycoin").setExecutor(this);
         if (!config.getBoolean("mode")) {
             getLogger().info("Man10PlayCoin is not run.");
+            mode = false;
+        } else {
+            getLogger().info("Man10PlayCoin is run.");
+            mode = true;
         }
         getServer().getScheduler().scheduleSyncRepeatingTask((Plugin)this, new Runnable() {
             public void run() {
@@ -61,6 +65,8 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         if (!(sender instanceof Player)) {
             return true;
         }
+        if (mode == false) return true;
+
         Player p = (Player) sender;
         if (!p.hasPermission("mplaycoin.use")) {
             p.sendMessage("Unknown command. Type \"/help\" for help.");
@@ -76,12 +82,11 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         }
         if (args[0].equalsIgnoreCase("register")) {
             if (args.length == 1){
-                if (p.hasPermission("mp.use")) {
                     getConfig().set("item",p.getInventory().getItemInMainHand());
+                    saveConfig();
                     p.sendMessage("§2§l[Man10PlayCoin]§fアイテムの登録ができました");
                     reloadConfig();
                     return true;
-                }
             }
         }
         if (args[0].equalsIgnoreCase("set")) {
@@ -94,6 +99,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 }
                 if (p.hasPermission("Man10PlayCoin.use")) {
                     getConfig().set("time",time);
+                    saveConfig();
                     p.sendMessage("§2§l[Man10PlayCoin]§f時間の登録ができました");
                     reloadConfig();
                     return true;
