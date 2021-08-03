@@ -50,13 +50,6 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             return;
         }
 
-        itemDropIntervalTime = getConfig().getInt("itemDropIntervalTime");
-        giveCoinMessage = getConfig().getString("giveCoinMessage");
-        fullInventoryMessage = getConfig().getString("fullInventoryMessage");
-        item = getConfig().getItemStack("item");
-        for (int i=0; i<getConfig().getString("worlds").length(); ++i) {
-            disabledWorlds.add(getConfig().getString("worlds"));
-        }
         // initialize hashmap when reload
         playerTimeMap.clear();
         for (Player p:Bukkit.getOnlinePlayers()) {
@@ -69,6 +62,19 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 giveCoinTask();
             }
         },  0L, 20L);
+    }
+
+    void loadSetting(){
+
+        itemDropIntervalTime = getConfig().getInt("itemDropIntervalTime");
+        giveCoinMessage = getConfig().getString("giveCoinMessage");
+        fullInventoryMessage = getConfig().getString("fullInventoryMessage");
+        item = getConfig().getItemStack("item");
+
+        for (int i=0; i<getConfig().getString("worlds").length(); ++i) {
+            disabledWorlds.add(getConfig().getString("worlds"));
+        }
+
     }
 
     @Override
