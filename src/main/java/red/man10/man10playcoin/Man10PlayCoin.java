@@ -46,13 +46,12 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             mode = false;
         } else {
             getLogger().info("Man10PlayCoin is run.");
-            mode = true;
+            getServer().getScheduler().scheduleSyncRepeatingTask((Plugin)this, new Runnable() {
+                public void run() {
+                    givecoin();
+                }
+            },  0L, 100L);
         }
-        getServer().getScheduler().scheduleSyncRepeatingTask((Plugin)this, new Runnable() {
-            public void run() {
-                givecoin();
-            }
-        },  0L, 100L);
     }
 
     @Override
