@@ -122,6 +122,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         }
         if (args[0].equalsIgnoreCase("reload")) {
             loadSettings();
+            p.sendMessage("§2§l[Man10PlayCoin]§fリロードしました");
             return false;
         }
         if (args[0].equalsIgnoreCase("on")) {
@@ -144,7 +145,6 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 getConfig().set("giveCoinMessage",args[1]);
                 saveConfig();
                 p.sendMessage("§2§l[Man10PlayCoin]§fメッセージの登録ができました");
-                reloadConfig();
                 return true;
             }
         }
@@ -154,7 +154,6 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 getConfig().set("fullInventoryMessage",args[1]);
                 saveConfig();
                 p.sendMessage("§2§l[Man10PlayCoin]§fメッセージの登録ができました");
-                reloadConfig();
                 return true;
             }
         }
