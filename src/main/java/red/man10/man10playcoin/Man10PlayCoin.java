@@ -120,7 +120,10 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
             saveConfig();
             p.sendMessage("§2§l[Man10PlayCoin]§f時間の登録ができました");
         }
-
+        if (args[0].equalsIgnoreCase("reload")) {
+            loadSettings();
+            return false;
+        }
         if (args[0].equalsIgnoreCase("on")) {
             enableFlag = true;
             getConfig().set("enableFlag",true);
@@ -168,6 +171,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         p.sendMessage("§a§l /mplaycoin fullInventoryMessage <Message>  上に同じ           ");
         p.sendMessage("§a§l /mplaycoin off 停止          ");
         p.sendMessage("§a§l /mplaycoin on 開始          ");
+        p.sendMessage("§a§l /mplaycoin reload");
         p.sendMessage("§a§l ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝");
 
 
