@@ -1,7 +1,7 @@
 enableFlag: true
 itemDropIntervalTime: 600
 giveCoinMessage: §f[§dMan§f10§a国王§f]§e%player%§fよ、§e§lプレイコイン§fをあげよう
-fullInventoryMessage: §f[§dMan§f10§a国王§f]§e%player%§fよ、インベントリがいっぱいだぞ
+fullInventoryMessage: §f[§dMan§f10§a国王§f]§e%player%§fよ、インベントリがいっぱいだぞ、足元においとくぞ
 disabledWorlds:
   - mfc
 dropItem:

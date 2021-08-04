@@ -223,6 +223,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 // インベントリがフルならメッセージをだす
                 if (isInventoryFull(p)){
                     p.sendMessage(fullInventoryMessage.replace("%player%",p.getName()));
+                    p.getWorld().dropItem(p.getLocation(),dropItem);
                     playerTimeMap.put(p,now);
                     continue;
                 }
