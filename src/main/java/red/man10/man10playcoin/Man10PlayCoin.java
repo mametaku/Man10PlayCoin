@@ -165,6 +165,13 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 p.sendMessage(giveCoinMessage.replace("%player%",p.getName()));
                 return true;
             }
+            if (args.length == 3){
+                int n =  Integer.parseInt(args[2]);
+                for (int i = 0;i < n;i++)
+                   p.getInventory().addItem(dropItem);
+                p.sendMessage(giveCoinMessage.replace("%player%",p.getName()));
+                return true;
+            }
         }
 
 
