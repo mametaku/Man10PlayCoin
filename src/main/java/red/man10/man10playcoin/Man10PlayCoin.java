@@ -79,6 +79,29 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+
+        if (args[0].equalsIgnoreCase("give")) {
+            var target = Bukkit.getPlayer(args[1]);
+            if(target == null){
+                sender.sendMessage("そのプレイヤーはオンラインではない");
+                return false;
+            }
+            if (args.length == 2){
+                target.getInventory().addItem(dropItem);
+                target.sendMessage(giveCoinMessage.replace("%player%",target.getName()));
+                return true;
+            }
+            if (args.length == 3){
+                int n =  Integer.parseInt(args[2]);
+                for (int i = 0;i < n;i++)
+                    target.getInventory().addItem(dropItem);
+                target.sendMessage(giveCoinMessage.replace("%player%",target.getName()));
+                return true;
+            }
+        }
+
+
         if (!(sender instanceof Player)) {
             return false;
         }
@@ -159,20 +182,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
                 return true;
             }
         }
-        if (args[0].equalsIgnoreCase("give")) {
-            if (args.length == 2){
-                p.getInventory().addItem(dropItem);
-                p.sendMessage(giveCoinMessage.replace("%player%",p.getName()));
-                return true;
-            }
-            if (args.length == 3){
-                int n =  Integer.parseInt(args[2]);
-                for (int i = 0;i < n;i++)
-                   p.getInventory().addItem(dropItem);
-                p.sendMessage(giveCoinMessage.replace("%player%",p.getName()));
-                return true;
-            }
-        }
+
 
 
         return false;
