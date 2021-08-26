@@ -27,12 +27,12 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
     final String getPermission = "red.man10.playcoin.get";
 
     // 設定
-    ItemStack dropItem = null;
-    boolean enableFlag;
-    int itemDropIntervalTime;
-    String giveCoinMessage;
-    String fullInventoryMessage;
-    List<String> disabledWorlds;
+    volatile ItemStack dropItem = null;
+    volatile boolean enableFlag;
+    volatile int itemDropIntervalTime;
+    volatile String giveCoinMessage;
+    volatile String fullInventoryMessage;
+    volatile List<String> disabledWorlds;
 
     //　保存データ
     HashMap<Player, Long> playerTimeMap = new HashMap<>();
@@ -61,6 +61,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
     }
 
     void loadSettings(){
+        reloadConfig();
         FileConfiguration config = getConfig();
         enableFlag = config.getBoolean("enableFlag");
         itemDropIntervalTime = config.getInt("itemDropIntervalTime");
@@ -68,6 +69,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         fullInventoryMessage = config.getString("fullInventoryMessage");
         dropItem = config.getItemStack("dropItem");
         disabledWorlds = config.getStringList("disabledWorlds");
+        Bukkit.getServer().broadcastMessage("[mplaycoin]reloaded");
     }
 
     @Override
