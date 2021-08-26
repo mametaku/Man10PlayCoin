@@ -183,6 +183,7 @@ public final class Man10PlayCoin extends JavaPlugin implements Listener {
         p.sendMessage("§a§l /mplaycoin register   手持ちのアイテムを設定    ");
         p.sendMessage("§a§l /mplaycoin time <time>  コインの排出間隔(秒)を設定           ");
         p.sendMessage("§a§l /mplaycoin giveCoinMessage <Message>  メッセージを設定           ");
+        p.sendMessage("§a§l /mplaycoin give　名前 [個数]");
         p.sendMessage("§a§l /mplaycoin fullInventoryMessage <Message>  上に同じ           ");
         p.sendMessage("§a§l /mplaycoin off 停止          ");
         p.sendMessage("§a§l /mplaycoin on 開始          ");
